@@ -25,15 +25,27 @@ namespace parking.api.Controllers
         [HttpGet("zones/all")]
         public async Task<ActionResult<IEnumerable<ParkingZone>>> GetParkZones()
         {
-            return await context.ParkingZones
-                .ToListAsync();
+            try
+            {
+                var parkingZones = await context.ParkingZones.ToListAsync();
+                parkingZones.ForEach(zone =>
+                {
+                    zone.Spots = context.ParkingSpots
+                        .Where(spot => spot.ZoneId == zone.Id)
+                        .ToList();
+                });
+                return Ok(parkingZones);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "GetParkZones - Internal server error: " + ex.Message);
+            }
         }
 
         [HttpGet("spots")]
         public async Task<ActionResult<IEnumerable<ParkingSpot>>> GetSpots()
         {
             return await context.ParkingSpots
-                .Include(s => s.Zone)
                 .ToListAsync();
         }
 
@@ -42,7 +54,6 @@ namespace parking.api.Controllers
         public async Task<ActionResult<ParkingSpot>> GetSpot(int id)
         {
             var spot = await context.ParkingSpots
-                .Include(s => s.Zone)
                 .FirstOrDefaultAsync(s => s.Id == id);
 
             if (spot == null) return NotFound();

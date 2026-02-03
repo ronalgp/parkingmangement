@@ -8,5 +8,4 @@ public class ParkingSpot
     public string Number { get; set; } = string.Empty;
     public bool IsOccupied { get; set; }
     public int ZoneId { get; set; }
-    public ParkingZone? Zone { get; set; }
 }
